@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Betting Tracker</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
+}
+.container{
+    max-width:900px;
+    margin:auto;
+}
+h1{
+    text-align:center;
+}
+.card{
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+input,select,button{
+    padding:10px;
+    margin:5px;
+    border-radius:5px;
+    border:none;
+}
+button{
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+button:hover{
+    background:#16a34a;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+th,td{
+    padding:10px;
+    text-align:center;
+}
+th{
+    background:#334155;
+}
+.profit{
+    color:#22c55e;
+}
+.loss{
+    color:#ef4444;
+}
+.summary{
+    display:flex;
+    justify-content:space-between;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>💰 Betting Tracker</h1>
+
+<div class="card">
+<h3>Add Bet</h3>
+<input type="date" id="date">
+<input type="number" id="stake" placeholder="Stake">
+<input type="number" id="odds" placeholder="Odds">
+<select id="result">
+<option value="win">Win</option>
+<option value="loss">Loss</option>
+</select>
+<button onclick="addBet()">Add</button>
+</div>
+
+<div class="card">
+<h3>Daily Bets</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Stake</th>
+<th>Odds</th>
+<th>Result</th>
+<th>Profit/Loss</th>
+</tr>
+</thead>
+<tbody id="betTable"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h3>Summary</h3>
+<div class="summary">
+<div>Daily Profit: <span id="dailyProfit">0</span></div>
+<div>Weekly Profit: <span id="weeklyProfit">0</span></div>
+</div>
+</div>
+
+</div>
+
+<script>
+let bets = JSON.parse(localStorage.getItem("bets")) || [];
+
+function addBet(){
+    const date = document.getElementById("date").value;
+    const stake = parseFloat(document.getElementById("stake").value);
+    const odds = parseFloat(document.getElementById("odds").value);
+    const result = document.getElementById("result").value;
+
+    if(!date || !stake || !odds){
+        alert("Fill all fields");
+        return;
+    }
+
+    let profit = result === "win" ? (stake * odds - stake) : -stake;
+
+    bets.push({date, stake, odds, result, profit});
+    localStorage.setItem("bets", JSON.stringify(bets));
+
+    displayBets();
+}
+
+function displayBets(){
+    const table = document.getElementById("betTable");
+    table.innerHTML = "";
+
+    let today = new Date().toISOString().split("T")[0];
+    let dailyTotal = 0;
+    let weeklyTotal = 0;
+
+    let now = new Date();
+    let firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
+
+    bets.forEach(bet => {
+        let row = `
+        <tr>
+            <td>${bet.date}</td>
+            <td>${bet.stake}</td>
+            <td>${bet.odds}</td>
+            <td>${bet.result}</td>
+            <td class="${bet.profit>=0?'profit':'loss'}">${bet.profit.toFixed(2)}</td>
+        </tr>`;
+        table.innerHTML += row;
+
+        if(bet.date === today){
+            dailyTotal += bet.profit;
+        }
+
+        let betDate = new Date(bet.date);
+        if(betDate >= firstDay){
+            weeklyTotal += bet.profit;
+        }
+    });
+
+    document.getElementById("dailyProfit").innerText = dailyTotal.toFixed(2);
+    document.getElementById("weeklyProfit").innerText = weeklyTotal.toFixed(2);
+}
+
+displayBets();
+</script>
+
+</body>
+</html>
