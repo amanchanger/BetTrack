@@ -17,9 +17,6 @@ body{
     max-width:900px;
     margin:auto;
 }
-h1{
-    text-align:center;
-}
 .card{
     background:#1e293b;
     padding:15px;
@@ -37,9 +34,6 @@ button{
     color:white;
     cursor:pointer;
 }
-button:hover{
-    background:#16a34a;
-}
 table{
     width:100%;
     border-collapse:collapse;
@@ -52,12 +46,8 @@ th,td{
 th{
     background:#334155;
 }
-.profit{
-    color:#22c55e;
-}
-.loss{
-    color:#ef4444;
-}
+.profit{color:#22c55e;}
+.loss{color:#ef4444;}
 .summary{
     display:flex;
     justify-content:space-between;
@@ -109,7 +99,15 @@ th{
 </div>
 
 <script>
-let bets = JSON.parse(localStorage.getItem("bets")) || [];
+let bets = [];
+
+// Load from JSON
+fetch("bets.json")
+.then(res => res.json())
+.then(data => {
+    bets = data.bets;
+    displayBets();
+});
 
 function addBet(){
     const date = document.getElementById("date").value;
@@ -125,8 +123,6 @@ function addBet(){
     let profit = result === "win" ? (stake * odds - stake) : -stake;
 
     bets.push({date, stake, odds, result, profit});
-    localStorage.setItem("bets", JSON.stringify(bets));
-
     displayBets();
 }
 
@@ -142,15 +138,14 @@ function displayBets(){
     let firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
 
     bets.forEach(bet => {
-        let row = `
+        table.innerHTML += `
         <tr>
             <td>${bet.date}</td>
             <td>${bet.stake}</td>
             <td>${bet.odds}</td>
             <td>${bet.result}</td>
-            <td class="${bet.profit>=0?'profit':'loss'}">${bet.profit.toFixed(2)}</td>
+            <td class="${bet.profit>=0?'profit':'loss'}">${bet.profit}</td>
         </tr>`;
-        table.innerHTML += row;
 
         if(bet.date === today){
             dailyTotal += bet.profit;
@@ -162,13 +157,10 @@ function displayBets(){
         }
     });
 
-    document.getElementById("dailyProfit").innerText = dailyTotal.toFixed(2);
-    document.getElementById("weeklyProfit").innerText = weeklyTotal.toFixed(2);
+    document.getElementById("dailyProfit").innerText = dailyTotal;
+    document.getElementById("weeklyProfit").innerText = weeklyTotal;
 }
-
-displayBets();
 </script>
-
 
 </body>
 </html>
